@@ -1,0 +1,5 @@
+backups/
+*.log
+*.etl
+*.pow
+__pycache__/
