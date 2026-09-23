@@ -33,6 +33,7 @@ Times below are local Asia/Singapore. Durations are entry-to-resume intervals.
 | Permanent dock S4 configuration | Sep 20-21: ~27h18m and ~3h01m, successful; current settings still verified afterward |
 | S3, all dock wake disabled, KVM on desktop | Sep 22 00:56:45-11:12:58 (~10h16m), power-button resume; keyboard wake-listed before sleep |
 | S3, all dock wake disabled, KVM on MacBook | Sep 22 17:04:51-22:12:13 (~5h07m), power-button resume; keyboard absent from pre-sleep wake list |
+| S3 charging control A1: all dock wake disabled, KVM on desktop, mouse on dock throughout (user confirmed) | Sep 23 17:23:40 to Sep 24 06:09:35 (~12h46m), power-button resume, no intervening wake; keyboard wake-listed in all 18 pre-sleep samples |
 
 Disabling just the two receiver mouse functions was **not sufficient**. Both the
 receiver and dock expose keyboard functions too. All four originally enabled wake
@@ -97,7 +98,9 @@ Use matched S3 trials with KVM on desktop, keyboard connected, mouse charging on
 the dock, same applications/idle timeout, and no added timer wakes. Record whether
 the mouse is on the dock; earlier tests did not consistently record that variable.
 
-1. Obtain a fresh all-four-off control with that specified mouse placement.
+1. **Completed September 24:** all-four-off control with specified mouse placement,
+   confirmed by the user on return. S3 lasted ~12h46m until power-button wake;
+   dock and cooler recovered normally and the production S4 settings restored.
 2. Enable all four dock wake permissions for one otherwise identical attempt.
 3. If spontaneous waking returns, disable all four again and repeat the control.
    Reproduce the on/off association before calling it causal evidence for wakes.
