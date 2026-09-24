@@ -34,6 +34,7 @@ Times below are local Asia/Singapore. Durations are entry-to-resume intervals.
 | S3, all dock wake disabled, KVM on desktop | Sep 22 00:56:45-11:12:58 (~10h16m), power-button resume; keyboard wake-listed before sleep |
 | S3, all dock wake disabled, KVM on MacBook | Sep 22 17:04:51-22:12:13 (~5h07m), power-button resume; keyboard absent from pre-sleep wake list |
 | S3 charging control A1: all dock wake disabled, KVM on desktop, mouse on dock throughout (user confirmed) | Sep 23 17:23:40 to Sep 24 06:09:35 (~12h46m), power-button resume, no intervening wake; keyboard wake-listed in all 18 pre-sleep samples |
+| Intended S3 wake-on trial B1 (invalid as S3 comparison) | Sep 24 06:38:11-06:38:47: Windows entered **S4**, then woke after ~37s with dock wake enabled. Following guard restoration, S4 06:55-14:43 lasted ~7h48m until the user's reported power-button return |
 
 Disabling just the two receiver mouse functions was **not sufficient**. Both the
 receiver and dock expose keyboard functions too. All four originally enabled wake
@@ -90,6 +91,16 @@ also changed later. Current successful S3 tests therefore cannot be attributed
 solely to disabling dock wake by comparing them with July/August lockups.
 
 ## Next proposed diagnostic comparison (not armed)
+
+**September 24 update:** B1 did not exercise S3 and cannot be counted as an S3
+success or failure. All nine pre-entry snapshots showed S3 idle=900, S4 idle=0,
+and all four dock wake interfaces enabled, but both Kernel-Power 42 and
+Power-Troubleshooter recorded TargetState=5 / EffectiveState=5 with a hibernation
+image written. ETW event 555 records a System request with PowerAction=3 and
+MinState=5. The reason Windows selected S4 is not established. The guard ran only
+after that early S4 resume and correctly restored the production settings. Resolve
+the state-selection discrepancy before another S3 comparison. The quick S4 wake
+is an observation, not proof of the original S3 lockup mechanism.
 
 Question: on the **current** hardware/software configuration, does changing the
 dock's four wake permissions change spontaneous S3 wake behavior or reproduce a hang?
