@@ -98,9 +98,27 @@ and all four dock wake interfaces enabled, but both Kernel-Power 42 and
 Power-Troubleshooter recorded TargetState=5 / EffectiveState=5 with a hibernation
 image written. ETW event 555 records a System request with PowerAction=3 and
 MinState=5. The reason Windows selected S4 is not established. The guard ran only
-after that early S4 resume and correctly restored the production settings. Resolve
-the state-selection discrepancy before another S3 comparison. The quick S4 wake
+after that early S4 resume and correctly restored the production settings. Investigate
+the state-selection discrepancy in the next instrumented attempt. The quick S4 wake
 is an observation, not proof of the original S3 lockup mechanism.
+
+An awake-only policy check on September 24 showed that applying the S3 settings
+correctly changed the running Windows policy to Idle.Action=2 (sleep),
+IdleTimeout=900, MinSleep=MaxSleep=4 (S3), and DozeS4Timeout=0. Restoring the
+production settings restored the hibernation policy. A temporary system execution
+request prevented automatic sleep during this check; it was released afterward.
+Dock wake remained disabled, so this does not establish the running policy during
+B1. Its cause remains unknown.
+
+The local trial scripts now query SystemPowerPolicyCurrent using the read-only
+[CallNtPowerInformation API](https://learn.microsoft.com/en-us/windows/win32/api/powerbase/nf-powerbase-callntpowerinformation).
+Arming aborts and restores the baseline if the running policy does not match S3;
+minute snapshots record that policy alongside the saved plan values. The helper
+and snapshot were executed successfully and the arming script passed syntax
+validation; the new abort path has not yet been exercised in an armed trial.
+No new trial was armed. The next wake-on attempt can distinguish a runtime policy
+change from an S4 request made while the most recently sampled policy still says
+S3. One-minute sampling cannot exclude a change in the final seconds before entry.
 
 Question: on the **current** hardware/software configuration, does changing the
 dock's four wake permissions change spontaneous S3 wake behavior or reproduce a hang?
