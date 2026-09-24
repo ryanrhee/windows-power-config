@@ -35,6 +35,7 @@ Times below are local Asia/Singapore. Durations are entry-to-resume intervals.
 | S3, all dock wake disabled, KVM on MacBook | Sep 22 17:04:51-22:12:13 (~5h07m), power-button resume; keyboard absent from pre-sleep wake list |
 | S3 charging control A1: all dock wake disabled, KVM on desktop, mouse on dock throughout (user confirmed) | Sep 23 17:23:40 to Sep 24 06:09:35 (~12h46m), power-button resume, no intervening wake; keyboard wake-listed in all 18 pre-sleep samples |
 | Intended S3 wake-on trial B1 (invalid as S3 comparison) | Sep 24 06:38:11-06:38:47: Windows entered **S4**, then woke after ~37s with dock wake enabled. Following guard restoration, S4 06:55-14:43 lasted ~7h48m until the user's reported power-button return |
+| S3 wake-on trial B2: all four dock wake interfaces enabled, keyboard wake-listed | Sep 24 15:07:58-15:08:17: actual **S3**, spontaneous resume after ~19s, wake attributed to AMD USB controller. Guard restored wake-off/S4 baseline; subsequent S4 15:24:14-23:57:33 lasted ~8h33m until the user's reported power-button return. Mouse placement/KVM position confirmation pending |
 
 Disabling just the two receiver mouse functions was **not sufficient**. Both the
 receiver and dock expose keyboard functions too. All four originally enabled wake
@@ -90,7 +91,25 @@ C-state/idle settings were restored to Auto and SVM was re-enabled. Cooling soft
 also changed later. Current successful S3 tests therefore cannot be attributed
 solely to disabling dock wake by comparing them with July/August lockups.
 
-## Next proposed diagnostic comparison (not armed)
+## S3 comparison and next step (not armed)
+
+**September 24 B2 result:** the instrumented wake-on retry entered S3, with
+TargetState=EffectiveState=4 and zero hibernation pages. All 16 pre-entry runtime
+policy snapshots showed sleep action 2, idle timeout 900 seconds, S3 bounds, and
+no S4 timeout. The keyboard and four enabled dock functions stayed wake-listed.
+The spontaneous wake after 19.35 seconds was attributed to controller
+`PCI\VEN_1022&DEV_43EE&SUBSYS_11421B21&REV_00\4&5f22ecf&0&000A`.
+The dock is downstream of this controller; the controller attribution alone does
+not identify the originating peripheral or HID function. No Kernel-Power 41 was
+recorded during the trial. The guard restored settings and dock wake flags at
+15:08:18-19, then stopped the trace. The later long S4 interval must not be counted
+as a long S3 success. Cooling task result was 0 after the final resume.
+
+This is evidence that enabling dock wake can bring back unwanted S3 wakes, subject
+to confirmation that the physical setup stayed matched. It has not reproduced
+the original hard lockup. Next is the planned return to **all-four-off S3 (A2)**,
+with the mouse charging and KVM on desktop, to test whether removing the wake
+permission again removes the quick-wake behavior. No new trial is armed.
 
 **September 24 update:** B1 did not exercise S3 and cannot be counted as an S3
 success or failure. All nine pre-entry snapshots showed S3 idle=900, S4 idle=0,
@@ -130,8 +149,9 @@ the mouse is on the dock; earlier tests did not consistently record that variabl
 1. **Completed September 24:** all-four-off control with specified mouse placement,
    confirmed by the user on return. S3 lasted ~12h46m until power-button wake;
    dock and cooler recovered normally and the production S4 settings restored.
-2. Enable all four dock wake permissions for one otherwise identical attempt.
-3. If spontaneous waking returns, disable all four again and repeat the control.
+2. **Completed September 24:** B1 unexpectedly entered S4; B2 entered S3 and woke
+   after ~19 seconds through the dock's USB controller. Confirm physical setup.
+3. **Next:** disable all four again and repeat the S3 control.
    Reproduce the on/off association before calling it causal evidence for wakes.
 
 Each trial is one-shot and must restore the production S4 settings and original
