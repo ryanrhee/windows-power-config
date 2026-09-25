@@ -36,7 +36,7 @@ Times below are local Asia/Singapore. Durations are entry-to-resume intervals.
 | S3 charging control A1: all dock wake disabled, KVM on desktop, mouse on dock throughout (user confirmed) | Sep 23 17:23:40 to Sep 24 06:09:35 (~12h46m), power-button resume, no intervening wake; keyboard wake-listed in all 18 pre-sleep samples |
 | Intended S3 wake-on trial B1 (invalid as S3 comparison) | Sep 24 06:38:11-06:38:47: Windows entered **S4**, then woke after ~37s with dock wake enabled. Following guard restoration, S4 06:55-14:43 lasted ~7h48m until the user's reported power-button return |
 | S3 wake-on trial B2: all four dock wake interfaces enabled, keyboard wake-listed | Sep 24 15:07:58-15:08:17: actual **S3**, spontaneous resume after ~19s, wake attributed to AMD USB controller. Guard restored wake-off/S4 baseline; subsequent S4 15:24:14-23:57:33 lasted ~8h33m until the user's reported power-button return. User confirmed mouse stayed charging on dock and KVM stayed on desktop throughout |
-| S3 wake-off return control A2: dock wake disabled, keyboard wake-listed | Sep 25 00:16:59-20:32:33 (~20h15m34s), uninterrupted S3 ending in a logged power-button wake. All 16 pre-entry samples showed runtime S3 policy and only separate keyboard/Ethernet wake-listed. Mouse placement/KVM position confirmation requested, pending |
+| S3 wake-off return control A2: dock wake disabled, keyboard wake-listed | Sep 25 00:16:59-20:32:33 (~20h15m34s), uninterrupted S3 ending in a logged power-button wake. All 16 pre-entry samples showed runtime S3 policy and only separate keyboard/Ethernet wake-listed. User confirmed mouse stayed charging on dock and KVM stayed on desktop throughout |
 
 Disabling just the two receiver mouse functions was **not sufficient**. Both the
 receiver and dock expose keyboard functions too. All four originally enabled wake
@@ -102,8 +102,8 @@ recorded. All 16 pre-entry snapshots showed the intended running S3 policy,
 the separate keyboard wake-listed, and dock functions absent from the wake list.
 The guard restored the normal S4 settings at 20:32:36; baseline verification
 passed, diagnostic tasks were disabled, and the cooling task returned 0.
-The user was asked to confirm the mouse stayed on the dock and KVM on desktop;
-that physical-setup confirmation is pending.
+The user confirmed the mouse stayed charging on the dock and KVM stayed on desktop
+throughout A2, matching the confirmed physical setup in A1 and B2.
 
 The observed A/B/A sequence is now wake-off ~12h46m, wake-on spontaneous USB wake
 after ~19s, wake-off ~20h15m. This strengthens the evidence that the dock wake
@@ -173,7 +173,7 @@ the mouse is on the dock; earlier tests did not consistently record that variabl
 2. **Completed September 24:** B1 unexpectedly entered S4; B2 entered S3 and woke
    after ~19 seconds through the dock's USB controller. Physical setup confirmed.
 3. **Completed September 25:** A2 with dock wake disabled stayed in S3 ~20h15m
-   until power-button wake. Physical setup confirmation pending. The A/B/A
+   until power-button wake. Physical setup confirmed. The A/B/A
    pattern supports a wake-permission effect; one valid wake-on trial limits
    confidence in reproducibility.
 
