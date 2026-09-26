@@ -1,7 +1,21 @@
 # Windows desktop power configuration
 
 Recovery instructions for the tested Razer Mouse Dock Pro + Windows S4 hibernation setup.
-Recorded 2026-09-20. This is specific to this desktop, not a general Windows tuning guide.
+Updated 2026-09-26. This is specific to this desktop, not a general Windows tuning guide.
+
+## Recommended setup
+
+Keep automatic S4 hibernation after 15 minutes idle, with automatic S3 sleep disabled.
+Connect the Mouse Dock Pro to the PC for charging and mouse connectivity, leave the
+standalone receiver unplugged, and disable all four dock wake permissions. Those
+permissions control waking the PC; charging and normal mouse use still work.
+Leave the separate keyboard's wake permission enabled and use the power button
+to resume reliably. Retain the [cooling task](docs/cooling.md) to reapply the cooler
+settings after resume.
+
+This is the current configuration. The completed S3 comparison supports keeping
+dock wake disabled; the original hard-lockup cause remains unresolved, so S4 is
+still the recommended default. Diagnostic sleep tests are finished and none is armed.
 
 ## Intended behavior
 
@@ -113,6 +127,21 @@ requires publishing it publicly.
 
 ## Evidence and limits
 
-See [investigation notes](docs/investigation.md). S4 with the dock and its wake
-permissions disabled passed one short test and one 9-hour overnight test. It is a
-tested workaround; the original S3 hang's mechanism is still unknown.
+See [investigation notes](docs/investigation.md) for the full record. S4 with the dock
+and its wake permissions disabled has passed repeated daytime and overnight trials.
+
+The September 23-26 S3 comparison kept the mouse charging on the dock and the KVM
+on desktop throughout, confirmed by the user for each test:
+
+| Dock wake permissions | S3 result |
+| --- | --- |
+| Disabled | ~12h46m, ended with power-button wake |
+| Enabled | Spontaneous USB wake after ~19 seconds |
+| Disabled | ~20h15m, ended with power-button wake |
+| Enabled | Spontaneous USB wake after ~42 seconds |
+
+Both spontaneous wakes named the same AMD USB controller serving the dock. This
+is strong evidence that dock wake permissions contribute to unwanted wakes in
+this setup. The tests do not identify the individual dock function responsible,
+and the original hard lockup has not recurred or been explained. Successful S3
+controls therefore do not establish that its original hang is fixed.
