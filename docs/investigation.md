@@ -94,6 +94,33 @@ solely to disabling dock wake by comparing them with July/August lockups.
 
 ## S3 comparison and next step (not armed)
 
+**September 26 B3 result and conclusion:** the wake-on replication entered S3 at
+00:06:46.288 and resumed spontaneously at 00:07:28.496, after 42.21 seconds.
+Power-Troubleshooter record 92334 shows TargetState=EffectiveState=4, zero
+hibernation pages, and an AMD USB controller wake. The lastwake capture names
+the same controller instance as B2. All 16 pre-entry snapshots show running S3
+policy, all four dock wake functions listed, and the separate keyboard listed.
+The user confirmed the mouse stayed charging on the dock and the KVM stayed on
+desktop throughout, matching A1/B2/A2. No Kernel-Power 41 was recorded.
+
+The guard restored the S4 settings and dock wake-off flags at 00:07:30 and saved
+the trace `s3-wake-20260925-235137.etl`. The subsequent S4 interval was
+00:23:54.546-11:14:03.693 (~10h50m09s), record 92376. That long interval is
+hibernation, not S3. Its wake source was unspecified; the user reported returning
+to the PC but did not specify the wake method. Baseline verification passed,
+diagnostic tasks were disabled, and the cooling task returned 0.
+
+The completed off/on/off/on comparison is ~12h46m / ~19s / ~20h15m / ~42s.
+Both enabled trials produced quick wakes through the same USB controller; both
+disabled controls stayed asleep until power-button wake. Physical setup was
+confirmed for all four. This is strong, repeated evidence that enabling the dock's
+wake permissions contributes to unwanted S3 wakes in the current setup. It does
+not identify the individual HID function or underlying driver/firmware mechanism,
+and no original hard lockup has recurred. Stop repeating the broad on/off test;
+keep the working S4/wake-off baseline. No new test is armed. Further investigation
+would need a different question, such as which dock function triggers wake or
+whether everyday S3 use with wake disabled remains stable.
+
 **September 25 A2 result:** Power-Troubleshooter record 92187 shows S3
 (TargetState=EffectiveState=4), zero hibernation pages, entry at 00:16:59.429 and
 resume at 20:32:33.585: 20h15m34s. Windows lastwake identifies the power button,
@@ -105,14 +132,9 @@ passed, diagnostic tasks were disabled, and the cooling task returned 0.
 The user confirmed the mouse stayed charging on the dock and KVM stayed on desktop
 throughout A2, matching the confirmed physical setup in A1 and B2.
 
-The observed A/B/A sequence is now wake-off ~12h46m, wake-on spontaneous USB wake
-after ~19s, wake-off ~20h15m. This strengthens the evidence that the dock wake
-permissions contribute to unwanted S3 wakes. There is only one valid wake-on S3
-trial so far, and no original hard lockup has recurred; this does not establish a
-specific HID function, firmware defect, or the cause of that lockup. No new test
-is armed. Keep the normal S4/wake-off baseline while reviewing the result. A
-further short wake-on replication could strengthen attribution if desired;
-another long wake-off run is not needed for the current comparison.
+At that point the A/B/A sequence was wake-off ~12h46m, wake-on spontaneous USB
+wake after ~19s, wake-off ~20h15m. B3 above subsequently replicated the quick wake
+with dock wake enabled; another long wake-off run is not needed.
 
 **September 24 B2 result:** the instrumented wake-on retry entered S3, with
 TargetState=EffectiveState=4 and zero hibernation pages. All 16 pre-entry runtime
@@ -173,9 +195,10 @@ the mouse is on the dock; earlier tests did not consistently record that variabl
 2. **Completed September 24:** B1 unexpectedly entered S4; B2 entered S3 and woke
    after ~19 seconds through the dock's USB controller. Physical setup confirmed.
 3. **Completed September 25:** A2 with dock wake disabled stayed in S3 ~20h15m
-   until power-button wake. Physical setup confirmed. The A/B/A
-   pattern supports a wake-permission effect; one valid wake-on trial limits
-   confidence in reproducibility.
+   until power-button wake. Physical setup confirmed.
+4. **Completed September 26:** B3 with dock wake enabled woke from S3 after
+   ~42 seconds through the same USB controller as B2. Physical setup confirmed.
+   The broad on/off comparison is complete; no more identical trials proposed.
 
 Each trial is one-shot and must restore the production S4 settings and original
 dock wake flags on resume or boot. A normal planned observation window is at least
