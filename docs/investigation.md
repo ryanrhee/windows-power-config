@@ -63,6 +63,23 @@ Original evidence is under `C:\Users\rhee\hang-diag` on the old installation.
 Large traces and logs are intentionally excluded from this repo. Older notes contain
 stronger causal claims than the experiments justify; use the conclusions above.
 
+## Settings change 2026-10-03: always-on browser host
+
+AC idle S4 changed from 15 minutes to Never so the PC can stay up as a browser host.
+AC idle S3 stays Never, hibernation stays enabled with a full file, and all dock wake
+permissions stay off. This is not an S3 rollback, so the unresolved lockup is not
+re-armed. `Set-Hibernation.ps1` now defaults to this profile; `-IdleHibernate` checks
+or restores the 2026-09-20 setup.
+
+Applied with `Set-Hibernation.ps1 -Apply` after a check-only run and `-WhatIf` preview.
+Before: `HIBERNATEIDLE` AC `0x384`. After: `0x0`, confirmed by `powercfg /query`, with
+`STANDBYIDLE` AC still `0x0` on Balanced. The previous values are in the local backup
+from 2026-10-03 11:30. The always-on behavior has not yet had an overnight check.
+
+With no idle resumes, the cooling task now runs only at logon or after a manual resume.
+The curves persist in the cooler's firmware, so that does not affect cooling, but the
+task's status read is no longer a periodic health check.
+
 ## Historical audit, 2026-09-23
 
 Do not repeat earlier trials without specifying what new comparison they provide.

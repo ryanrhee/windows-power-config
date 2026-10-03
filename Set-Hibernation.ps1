@@ -4,14 +4,18 @@
 Default: inspect settings without changing them.
 Use -Apply to configure the current power plan and connected Razer Mouse Dock Pro.
 Use -Apply -WhatIf to preview. This script exits; it installs no background task.
+The default is the always-on browser host: AC idle hibernate is Never. Add
+-IdleHibernate to check or restore the earlier tested setup (S4 after 15 minutes).
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
-param([switch]$Apply)
+param([switch]$Apply, [switch]$IdleHibernate)
 
 $ErrorActionPreference = 'Stop'
 $dockPattern = '^HID\\VID_1532&PID_00A4&'
 $sleepGuid = '29f6c1db-86da-48c5-9fdb-f2b67b1f44da'
 $hibernateGuid = '9d7815a6-7ee4-497e-8888-515a05f02364'
+$targetHibernateSeconds = if ($IdleHibernate) { 900 } else { 0 }
+$targetHibernateText = if ($IdleHibernate) { '15 minutes' } else { 'Never' }
 
 function Invoke-PowerCfg([string[]]$Arguments) {
     $output = @(& "$env:SystemRoot\System32\powercfg.exe" @Arguments 2>&1)
@@ -55,7 +59,7 @@ foreach ($interface in @('MI_00\\', 'MI_01&Col01\\', 'MI_01&Col02\\', 'MI_02\\')
 }
 
 if ($Apply -and $PSCmdlet.ShouldProcess('Current power plan and Razer Mouse Dock Pro',
-    'Enable full hibernation, set AC idle hibernate to 15 minutes, disable AC idle S3 and all dock wake permissions')) {
+    "Enable full hibernation, set AC idle hibernate to $targetHibernateText, disable AC idle S3 and all dock wake permissions")) {
     $activeTest = Join-Path $env:USERPROFILE 'hang-diag\active-s4-trace.json'
     if (Test-Path -LiteralPath $activeTest) { throw 'Finish the active diagnostic test before applying permanent settings.' }
 
@@ -94,7 +98,7 @@ if ($Apply -and $PSCmdlet.ShouldProcess('Current power plan and Razer Mouse Dock
         Invoke-PowerCfg @('/hibernate', '/type', 'full') | Out-Host
     }
     Invoke-PowerCfg @('/setacvalueindex', $scheme, 'SUB_SLEEP', 'STANDBYIDLE', '0') | Out-Host
-    Invoke-PowerCfg @('/setacvalueindex', $scheme, 'SUB_SLEEP', 'HIBERNATEIDLE', '900') | Out-Host
+    Invoke-PowerCfg @('/setacvalueindex', $scheme, 'SUB_SLEEP', 'HIBERNATEIDLE', [string]$targetHibernateSeconds) | Out-Host
     Invoke-PowerCfg @('/setactive', $scheme) | Out-Host
 }
 
@@ -104,11 +108,12 @@ $hibernateSeconds = Get-ACValue $scheme $hibernateGuid
 $enabledDockWake = @(Get-DockWake | Where-Object Enable).Count
 $guard = Get-ScheduledTask -TaskName 'HangDiagStopAutoHibernateTest' -ErrorAction SilentlyContinue
 $guardDisabled = -not $guard -or $guard.State -eq 'Disabled'
-$matches = $sleepSeconds -eq 0 -and $hibernateSeconds -eq 900 -and
+$matches = $sleepSeconds -eq 0 -and $hibernateSeconds -eq $targetHibernateSeconds -and
     $enabledDockWake -eq 0 -and $power.HibernateEnabled -eq 1 -and
     $power.HiberFileType -eq 2 -and $guardDisabled
 
 [pscustomobject]@{
+    Profile = if ($IdleHibernate) { 'IdleHibernate' } else { 'BrowserHost' }
     ActivePowerScheme = Get-ActiveScheme
     HibernateEnabled = $power.HibernateEnabled -eq 1
     FullHibernateFile = $power.HiberFileType -eq 2

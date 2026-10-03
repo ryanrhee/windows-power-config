@@ -1,37 +1,42 @@
 # Windows desktop power configuration
 
-Recovery instructions for the tested Razer Mouse Dock Pro + Windows S4 hibernation setup.
-Updated 2026-09-26. This is specific to this desktop, not a general Windows tuning guide.
+Recovery instructions for the Razer Mouse Dock Pro + Windows power setup on this desktop.
+Updated 2026-10-03. This is specific to this desktop, not a general Windows tuning guide.
 
 ## Recommended setup
 
-Keep automatic S4 hibernation after 15 minutes idle, with automatic S3 sleep disabled.
+Since 2026-10-03 this PC is an always-on browser host: automatic S3 sleep and automatic
+S4 hibernation are both disabled on AC power. Hibernation itself stays enabled with a
+full file, so it remains available manually and for the `-IdleHibernate` profile.
 Connect the Mouse Dock Pro to the PC for charging and mouse connectivity, leave the
 standalone receiver unplugged, and disable all four dock wake permissions. Those
 permissions control waking the PC; charging and normal mouse use still work.
-Leave the separate keyboard's wake permission enabled and use the power button
-to resume reliably. Retain the [cooling task](docs/cooling.md) to reapply the cooler
-settings after resume.
+Leave the separate keyboard's wake permission enabled. Retain the
+[cooling task](docs/cooling.md): it re-pushes the cooler curves at logon and after any
+resume, and the cooler runs them from firmware in between.
 
-This is the current configuration. The completed S3 comparison supports keeping
-dock wake disabled; the original hard-lockup cause remains unresolved, so S4 is
-still the recommended default. Diagnostic sleep tests are finished and none is armed.
+Disabling idle hibernation does not re-arm S3. Automatic sleep stays Never, so the
+unresolved S3 hard lockup is not back in play. The earlier tested setup, S4 after
+15 minutes idle, remains available through `-IdleHibernate` if the PC stops being a
+host. Diagnostic sleep tests are finished and none is armed.
 
 ## Intended behavior
 
 | Setting | Value |
 | --- | --- |
-| Hibernate after, on AC power | 15 minutes idle (900 seconds) |
+| Hibernate after, on AC power | Never (0 seconds); 15 minutes (900) with `-IdleHibernate` |
 | Ordinary sleep after, on AC power | Never (0 seconds) |
 | Hibernation support | Enabled, full hibernation file |
 | Mouse Dock Pro wake permissions | Disabled on all its HID interfaces |
 | Separate keyboard wake permission | Left enabled on the tested installation |
-| Resume | Use the power button; mouse movement should not wake the PC |
+| Resume, if hibernated manually | Use the power button; mouse movement should not wake the PC |
 
 The tested plan is Windows Balanced. The script modifies the **currently active plan**.
-Battery settings, wake timers, hybrid sleep, button actions and other devices' wake
-permissions are left unchanged. Choosing Sleep manually can still enter S3.
-Applications can delay idle hibernation through power requests; 15 minutes is not a forced deadline.
+Battery settings, wake timers, hybrid sleep, button actions, display and disk timeouts,
+and other devices' wake permissions are left unchanged. The display still turns off
+when idle; that does not suspend the browser. Choosing Sleep manually can still enter S3.
+Under `-IdleHibernate`, applications can delay idle hibernation through power requests;
+15 minutes is not a forced deadline.
 
 ## After reinstalling Windows
 
@@ -52,7 +57,13 @@ Applications can delay idle hibernation through power requests; 15 minutes is no
 
    # Later: check only, without changing settings.
    .\Set-Hibernation.ps1
+
+   # Earlier tested profile: S4 after 15 minutes idle instead of never.
+   .\Set-Hibernation.ps1 -Apply -IdleHibernate
    ```
+
+   Check mode compares against the selected profile, so check the 15-minute
+   profile with `.\Set-Hibernation.ps1 -IdleHibernate`.
 
    If execution policy blocks the local script, use a process-only invocation:
 
@@ -63,10 +74,14 @@ Applications can delay idle hibernation through power requests; 15 minutes is no
 5. Confirm `MatchesDocumentedSettings : True`. Check the listed wake devices and
    verify the separate keyboard has the desired permission in Device Manager.
 6. Restore cooling separately using [the cooling notes](docs/cooling.md).
-7. Validate one idle hibernation with work saved. Keep the monitor KVM on the desktop
-   and the laptop disconnected, so the keyboard stays attached. Leave the desktop for
-   45-60 minutes, wake with the power button, then check mouse, keyboard and cooling.
-   Follow with an overnight trial. A new Windows/driver installation needs fresh validation.
+7. Validate that the PC stays up. Leave it idle overnight, then confirm with
+   `powercfg /lastwake` and the Power-Troubleshooter query below that no sleep or
+   hibernation was recorded, and check the cooler status in `cooling.log`. If using
+   `-IdleHibernate` instead, validate one idle hibernation with work saved: keep the
+   monitor KVM on the desktop and the laptop disconnected so the keyboard stays attached,
+   leave it 45-60 minutes, wake with the power button, then check mouse, keyboard and
+   cooling, and follow with an overnight trial. A new Windows/driver installation needs
+   fresh validation.
 
 The script finds dock interfaces by **VID_1532 / PID_00A4**, including its two mouse
 and two keyboard functions. Display names and device-instance suffixes can change
@@ -99,7 +114,8 @@ In the last command, `SleepTime` and `WakeTime` are UTC. `TargetState=5` and
 reports Unknown, even after a reported power-button wake. Kernel-Power 107 timestamps
 have been misleading; use the Power-Troubleshooter timestamps to measure the interval.
 
-To pause automatic hibernation without changing device permissions:
+To switch idle hibernation without changing device permissions, set `HIBERNATEIDLE`
+to `0` (never, the browser-host default) or `900` (the `-IdleHibernate` profile):
 
 ```powershell
 powercfg /setacvalueindex SCHEME_CURRENT SUB_SLEEP HIBERNATEIDLE 0
