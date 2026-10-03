@@ -19,6 +19,17 @@ function Invoke-Liquidctl([string]$Label, [string[]]$Arguments) {
 $pump = '20 60 30 60 34 75 38 90 42 100'
 # Radiator fans: liquid C -> duty %.
 $fan  = '20 25 30 30 34 45 38 65 42 85 45 100'
+
+# NZXT CAM drives this cooler over the same USB interface and overrides the curves above
+# while it runs. A dormant install is harmless, so test for a live process rather than for
+# C:\Program Files\NZXT CAM, which can linger as an empty folder after an uninstall. Warn
+# and continue: the curves may not stick, and the status read below may report CAM's values.
+$cam = @(Get-Process -ErrorAction SilentlyContinue |
+    Where-Object { $_.ProcessName -match '^(NZXT ?)?CAM$' })
+if ($cam.Count -gt 0) {
+    Log ('WARN: NZXT CAM is running (PID {0}); it may override these curves' -f (($cam | ForEach-Object { $_.Id }) -join ', '))
+}
+
 Start-Sleep -Seconds $SettleSeconds
 
 $found = $false
